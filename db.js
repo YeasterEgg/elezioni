@@ -30,6 +30,23 @@ const City = sequelize.define('city', {
   name: nonNullable(Sequelize.STRING),
   region: nullable(Sequelize.STRING),
   province: nullable(Sequelize.STRING),
+  area_geo: nullable(Sequelize.STRING),
+  pop_residente: nullable(Sequelize.FLOAT),
+  pop_straniera: nullable(Sequelize.FLOAT),
+  densita_demografica: nullable(Sequelize.FLOAT),
+  superficie_kmq: nullable(Sequelize.FLOAT),
+  altezza_centro: nullable(Sequelize.FLOAT),
+  altezza_minima: nullable(Sequelize.FLOAT),
+  altezza_massima: nullable(Sequelize.FLOAT),
+  zona_altimetrica: nullable(Sequelize.STRING),
+  tipo_comune: nullable(Sequelize.STRING),
+  grado_urbaniz: nullable(Sequelize.STRING),
+  indice_montanita: nullable(Sequelize.STRING),
+  zona_climatica: nullable(Sequelize.STRING),
+  zona_sismica: nullable(Sequelize.FLOAT),
+  classe_comune: nullable(Sequelize.STRING),
+  latitudine: nullable(Sequelize.STRING),
+  longitudine: nullable(Sequelize.STRING),
 }, { underscored: true })
 
 const Result = sequelize.define('vote', {

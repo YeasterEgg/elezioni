@@ -27,12 +27,12 @@ const start = async () => {
         }
         const text = csv.body
         const fileName = get(csv.headers, 'content-disposition').split('filename=')[1]
-        fs.writeFileSync(`./results/${fileName}_${idx}`, text)
+        fs.writeFileSync(`./downloaded/${fileName}_${idx}`, text)
         console.log(`Downloading ${idx}`)
-        fs.appendFileSync('./downloaded.txt', `${href}\n`)
+        fs.appendFileSync('./data/downloaded.txt', `${href}\n`)
       } catch (err) {
         console.log(`Error ${idx}`)
-        fs.appendFileSync('./missing.txt', `${href}\n`)
+        fs.appendFileSync('./data/missing.txt', `${href}\n`)
       }
     }
   }
