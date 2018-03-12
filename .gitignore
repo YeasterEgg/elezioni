@@ -1,0 +1,7 @@
+node_modules
+.git
+results
+crawled
+all
+__pycache__
+.venv
