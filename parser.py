@@ -9,7 +9,7 @@ FIRST_PATH = '/index.php?tpel=C'
 class ElectionSpider(scrapy.Spider):
   name = 'electionSpider'
   start_urls = [BASE_URL + FIRST_PATH]
-  download_delay = 2
+  download_delay = 1
 
   def parse(self, response):
     for date in response.css('#collapseTwo .sezione_ristretta li a'):
