@@ -1,13 +1,13 @@
 const Sequelize = require('sequelize')
-// const DATABASE_URL = 'postgres://ucxlthzn:-qKra9DV7dDbQ2NSwJL0fgUV6-Zyp1Uf@horton.elephantsql.com:5432/ucxlthzn'
-const DATABASE_URL = 'postgres://lucamattiazzi@localhost:5432/elezioni'
+const DATABASE_URL = process.env.DATABASE_URL ||
+  'postgres://lucamattiazzi@localhost:5432/elezioni'
 
 const sequelize = new Sequelize(
   DATABASE_URL,
   {
     logging: false,
     dialect: 'postgres',
-    dialectOptions: { ssl: false },
+    dialectOptions: { ssl: true },
   }
 )
 
