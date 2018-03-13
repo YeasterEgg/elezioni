@@ -65,7 +65,7 @@ const extractData = cityData => {
   const values = additionalKeys.reduce((acc, k) => {
     return {
       ...acc,
-      [decamelize(k)]: data[k],
+      [decamelize(k)]: data[k] ? data[k].toString() : null,
     }
   }, {})
   return values
@@ -95,6 +95,7 @@ const start = async () => {
     }
     const additionalData = extractData(cityData)
     const completeCity = { name, ...additionalData }
+    debugger
     const [ city ] = await City.findOrCreate({ where: completeCity })
     for (let j = 0; j < validRows.length; j++) {
       const row = validRows[j]
