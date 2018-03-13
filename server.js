@@ -9,6 +9,13 @@ const corsOptions = {
 
 app.use(cors(corsOptions))
 
+const routes = {
+  '/elections': 'List all elections',
+  '/elections/:id': 'Single election and its votes',
+  '/cities': 'List all cities',
+  '/cities/:id': 'Single city and its votes',
+}
+
 const startServer = async () => {
   const { Election, City, Result } = await dbConnection()
 
@@ -26,7 +33,7 @@ const startServer = async () => {
     res.status(200).json(payload)
   }
 
-  app.get('/', (req, res) => res.status(200).json({ success: 'Luca!' }))
+  app.get('/', (req, res) => res.status(200).json(routes))
   app.get('/elections/:id', getSingleInstance(Election))
   app.get('/elections', getAllInstances(Election))
   app.get('/cities/:id', getSingleInstance(City))
