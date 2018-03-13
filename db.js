@@ -28,22 +28,22 @@ const Election = sequelize.define('election', {
 const City = sequelize.define('city', {
   id: nonNullable(Sequelize.INTEGER, { primaryKey: true, autoIncrement: true }),
   name: nonNullable(Sequelize.STRING),
-  region: nullable(Sequelize.STRING),
-  province: nullable(Sequelize.STRING),
+  regione: nullable(Sequelize.STRING),
+  provincia: nullable(Sequelize.STRING),
   area_geo: nullable(Sequelize.STRING),
-  pop_residente: nullable(Sequelize.FLOAT),
-  pop_straniera: nullable(Sequelize.FLOAT),
-  densita_demografica: nullable(Sequelize.FLOAT),
-  superficie_kmq: nullable(Sequelize.FLOAT),
-  altezza_centro: nullable(Sequelize.FLOAT),
-  altezza_minima: nullable(Sequelize.FLOAT),
-  altezza_massima: nullable(Sequelize.FLOAT),
+  pop_residente: nullable(Sequelize.STRING),
+  pop_straniera: nullable(Sequelize.STRING),
+  densita_demografica: nullable(Sequelize.STRING),
+  superficie_kmq: nullable(Sequelize.STRING),
+  altezza_centro: nullable(Sequelize.STRING),
+  altezza_minima: nullable(Sequelize.STRING),
+  altezza_massima: nullable(Sequelize.STRING),
   zona_altimetrica: nullable(Sequelize.STRING),
   tipo_comune: nullable(Sequelize.STRING),
   grado_urbaniz: nullable(Sequelize.STRING),
   indice_montanita: nullable(Sequelize.STRING),
   zona_climatica: nullable(Sequelize.STRING),
-  zona_sismica: nullable(Sequelize.FLOAT),
+  zona_sismica: nullable(Sequelize.STRING),
   classe_comune: nullable(Sequelize.STRING),
   latitudine: nullable(Sequelize.STRING),
   longitudine: nullable(Sequelize.STRING),
@@ -55,11 +55,11 @@ const Result = sequelize.define('vote', {
   party: nonNullable(Sequelize.STRING),
 }, { underscored: true, timestamps: false })
 
-Election.hasMany(City)
+Election.hasMany(Result)
 City.hasMany(Result)
 
 Result.belongsTo(City)
-City.belongsTo(Election)
+Result.belongsTo(Election)
 
 const dbConnection = async () => {
   await sequelize.sync()
