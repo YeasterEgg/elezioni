@@ -20,11 +20,24 @@ const start = async () => {
           errors++
           csv = await got.get(href)
           error = get(csv.headers, 'content-disposition') === undefined
-          if (errors > 1) {
-            if (errors > 10) debugger
+          if (errors > 10) {
+            const errorMessage = {
+              url: csv.requestUrl,
+              status: csv.statusCode,
+              idx: href,
+              href: href,
+            }
+            fs.appendFileSync(
+              './data/download-errors.json',
+              `${JSON.stringify(errorMessage)}\n`
+            )
+            await wait(200)
+          } else if (errors > 1) {
             console.log(`Trial #${errors} for ${idx}`)
+            await wait(errors * 500)
+          } else {
+            await wait(200)
           }
-          await wait(errors * 200)
         }
         const text = csv.body
         const fileName = get(csv.headers, 'content-disposition').split('filename=')[1]
