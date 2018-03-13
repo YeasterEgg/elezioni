@@ -4,9 +4,7 @@ const { dbConnection } = require('./db')
 const PORT = process.env.PORT || 3000
 const app = express()
 const corsOptions = {
-  origin: (hostname, cb) => {
-    cb(null, true)
-  },
+  origin: (hostname, cb) => cb(null, true),
 }
 
 app.use(cors(corsOptions))
@@ -14,22 +12,25 @@ app.use(cors(corsOptions))
 const startServer = async () => {
   const { Election, City, Result } = await dbConnection()
 
-  const getElection = (req, res) => {
-    const { date } = req.params
-    const where = { date }
-    const include = {
-      model: City,
-      include: {
-        model: Result,
-      },
-    }
-    const election = Election.findOne({ where, include })
-    const payload = { success: true, payload: election }
+  const getAllInstances = model => async (req, res) => {
+    const instances = await model.findAll()
+    const payload = { success: true, payload: instances }
+    res.status(200).json(payload)
+  }
+
+  const getSingleInstance = model => async (req, res) => {
+    const { id } = req.params
+    const include = [{ model: Result }]
+    const instance = await model.findById(id, { include })
+    const payload = { success: true, payload: instance }
     res.status(200).json(payload)
   }
 
   app.get('/', (req, res) => res.status(200).json({ success: 'Luca!' }))
-  app.get('/:date', getElection)
+  app.get('/elections/:id', getSingleInstance(Election))
+  app.get('/elections', getAllInstances(Election))
+  app.get('/cities/:id', getSingleInstance(City))
+  app.get('/cities', getAllInstances(City))
 
   app.listen(PORT)
 }

@@ -53,8 +53,8 @@ const selectCorrectData = cityData => {
   if (additionalData.length === 1) return additionalData[0]
   const locationData = [
     cityData.name.toUpperCase(),
-    cityData.region.toUpperCase(),
-    cityData.province.toUpperCase(),
+    cityData.regione.toUpperCase(),
+    cityData.provincia.toUpperCase(),
   ]
   fs.appendFileSync('./data/undefined.txt', `${locationData.join(',')}\n`)
   return {}
@@ -86,16 +86,15 @@ const start = async () => {
     const [ election ] = await Election.findOrCreate({ where })
     const name = cleanAndCapitalize(validRows[0].name)
     const [dirtyRegion, dirtyProvince] = file.split('-Comune.csv')[0].split('-').slice(-2)
-    const region = cleanAndCapitalize(dirtyRegion)
-    const province = cleanAndCapitalize(dirtyProvince)
+    const regione = cleanAndCapitalize(dirtyRegion)
+    const provincia = cleanAndCapitalize(dirtyProvince)
     const cityData = {
       name,
-      region,
-      province,
+      regione,
+      provincia,
     }
     const additionalData = extractData(cityData)
-    const completeCity = { name, ...additionalData }
-    debugger
+    const completeCity = { ...cityData, ...additionalData }
     const [ city ] = await City.findOrCreate({ where: completeCity })
     for (let j = 0; j < validRows.length; j++) {
       const row = validRows[j]

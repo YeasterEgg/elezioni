@@ -23,7 +23,7 @@ const Election = sequelize.define('election', {
   id: nonNullable(Sequelize.INTEGER, { primaryKey: true, autoIncrement: true }),
   date: nonNullable(Sequelize.DATE),
   camera: nonNullable(Sequelize.STRING),
-}, { underscored: true })
+}, { underscored: true, timestamps: false })
 
 const City = sequelize.define('city', {
   id: nonNullable(Sequelize.INTEGER, { primaryKey: true, autoIncrement: true }),
@@ -47,7 +47,7 @@ const City = sequelize.define('city', {
   classe_comune: nullable(Sequelize.STRING),
   latitudine: nullable(Sequelize.STRING),
   longitudine: nullable(Sequelize.STRING),
-}, { underscored: true })
+}, { underscored: true, timestamps: false })
 
 const Result = sequelize.define('vote', {
   id: nonNullable(Sequelize.INTEGER, { primaryKey: true, autoIncrement: true }),
