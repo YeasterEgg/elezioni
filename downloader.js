@@ -21,6 +21,7 @@ const start = async () => {
           csv = await got.get(href)
           error = get(csv.headers, 'content-disposition') === undefined
           if (errors > 1) {
+            if (errors > 10) debugger
             console.log(`Trial #${errors} for ${idx}`)
           }
           await wait(errors * 200)

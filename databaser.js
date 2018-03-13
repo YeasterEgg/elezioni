@@ -57,15 +57,19 @@ const selectCorrectData = cityData => {
     cityData.provincia.toUpperCase(),
   ]
   fs.appendFileSync('./data/undefined.txt', `${locationData.join(',')}\n`)
-  return {}
+  return cityData
 }
 
 const extractData = cityData => {
   const data = selectCorrectData(cityData)
   const values = additionalKeys.reduce((acc, k) => {
+    const key = decamelize(k)
+    const value = data[k]
+      ? data[k].toString()
+      : cityData[key]
     return {
       ...acc,
-      [decamelize(k)]: data[k] ? data[k].toString() : null,
+      [key]: value,
     }
   }, {})
   return values

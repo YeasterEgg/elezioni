@@ -1,13 +1,14 @@
 const Sequelize = require('sequelize')
 const DATABASE_URL = process.env.DATABASE_URL ||
   'postgres://lucamattiazzi@localhost:5432/elezioni'
+const SSL = process.env.DATABASE_URL !== undefined
 
 const sequelize = new Sequelize(
   DATABASE_URL,
   {
     logging: false,
     dialect: 'postgres',
-    dialectOptions: { ssl: true },
+    dialectOptions: { ssl: SSL },
   }
 )
 
