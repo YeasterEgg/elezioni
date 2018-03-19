@@ -6,6 +6,7 @@ const uuid = require('uuid/v4')
 const files = fs.readdirSync('./downloaded')
 const comuni = JSON.parse(fs.readFileSync('./data/comuni.json').toString())
 const { dbConnection } = require('./bigquery')
+const databasedList = fs.readFileSync('./data/databased.txt').toString().split('\n')
 
 const additionalKeys = [
   'AreaGeo',
@@ -94,8 +95,13 @@ const start = async () => {
   const { Election, City, Result } = await dbConnection()
   const cityDataGetter = getCityData(City)
   for (let i = 0; i < files.length; i++) {
-    console.log(`File ${i}/${files.length}`)
     const file = files[i]
+    if (databasedList.indexOf(file) !== -1) {
+      console.log(`Skipping file ${i}/${files.length}`)
+      continue
+    } else {
+      console.log(`File ${i}/${files.length}`)
+    }
     const allRows = fs.readFileSync(`./downloaded/${file}`).toString().split('\n')
     const validRows = getDataFromRows(allRows)
     const [day, month, year] = file.split('-')[2].split('_')
@@ -134,6 +140,7 @@ const start = async () => {
       const rows = cityRows[Object.keys(cityRows)[k]].votes
       await Result.create(rows)
     }
+    fs.appendFileSync('./data/databased.txt', `${file}\n`)
   }
   process.exit()
 }
