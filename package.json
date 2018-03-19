@@ -22,6 +22,7 @@
     "p-map-series": "^1.0.0",
     "pg": "^7.4.1",
     "puppeteer": "^1.1.1",
-    "sequelize": "^4.36.0"
+    "sequelize": "^4.36.0",
+    "uuid": "^3.2.1"
   }
 }

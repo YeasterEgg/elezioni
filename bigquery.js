@@ -4,7 +4,7 @@ const DATASET_NAME = 'elezioni'
 
 const ELECTIONS_SCHEMA = {
   fields: [
-    { name: 'id', type: 'INT64' },
+    { name: 'uid', type: 'STRING' },
     { name: 'date', type: 'DATETIME' },
     { name: 'camera', type: 'STRING' },
   ],
@@ -12,7 +12,7 @@ const ELECTIONS_SCHEMA = {
 
 const CITIES_SCHEMA = {
   fields: [
-    { name: 'id', type: 'INTEGER' },
+    { name: 'uid', type: 'STRING' },
     { name: 'name', type: 'STRING' },
     { name: 'regione', type: 'STRING' },
     { name: 'provincia', type: 'STRING' },
@@ -38,11 +38,10 @@ const CITIES_SCHEMA = {
 
 const RESULTS_SCHEMA = {
   fields: [
-    { name: 'id', type: 'INTEGER' },
     { name: 'votes', type: 'INTEGER' },
     { name: 'party', type: 'STRING' },
-    { name: 'city_id', type: 'INTEGER' },
-    { name: 'election_id', type: 'INTEGER' },
+    { name: 'city_uid', type: 'STRING' },
+    { name: 'election_uid', type: 'STRING' },
   ],
 }
 
@@ -52,18 +51,40 @@ class Table {
     this.table = dataset.table(name)
     this.name = name
     this.schema = schema
+    this.created = false
   }
 
-  async create() {
+  createQuery(where) {
+    const clauses = Object.entries(where).map(([k, v]) => `${k} = '${v.value || v}'`).join(' AND ')
+    const query = `SELECT * FROM ${this.name} WHERE ${clauses}`
+    return query
+  }
+
+  async createTable() {
     const exists = await this.table.exists()
-    if (!exists[0]) {
-      await this.dataset.createTable(this.name, { schema: this.schema })
-    }
+    if (!exists[0]) await this.dataset.createTable(this.name, { schema: this.schema })
+    this.created = true
+    return this
   }
 
   async addRow(row) {
     const results = await this.table.insert(row)
     return results
+  }
+
+  async create(rows) {
+    const newRows = await this.table.insert(rows)
+    return newRows
+  }
+
+  async findOrCreate({ where, defaults = {} }) {
+    const query = this.createQuery(where)
+    const results = await this.table.query(query)
+    const row = results[0][0]
+    if (row) return row
+    const data = Object.assign({}, where, defaults)
+    await this.table.insert(data)
+    return data
   }
 }
 
@@ -77,13 +98,13 @@ class Dataset {
   }
 
   async addTables() {
-    const elections = await new Table(this.dataset, 'elections', ELECTIONS_SCHEMA)
-    await elections.create()
-    const cities = await new Table(this.dataset, 'cities', CITIES_SCHEMA)
-    await cities.create()
-    const results = await new Table(this.dataset, 'results', RESULTS_SCHEMA)
-    await results.create()
-    this.tables = { elections, cities, results }
+    const Election = await new Table(this.dataset, 'elections', ELECTIONS_SCHEMA)
+    await Election.createTable()
+    const City = await new Table(this.dataset, 'cities', CITIES_SCHEMA)
+    await City.createTable()
+    const Result = await new Table(this.dataset, 'results', RESULTS_SCHEMA)
+    await Result.createTable()
+    this.tables = { Election, City, Result }
   }
 
   async getTables() {
@@ -100,7 +121,7 @@ class Dataset {
 const dbConnection = async () => {
   const database = new Dataset(DATASET_NAME)
   await database.addTables()
-  return database
+  return database.tables
 }
 
 module.exports = { dbConnection }

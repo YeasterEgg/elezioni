@@ -1,6 +1,8 @@
 const fs = require('fs')
 const moment = require('moment')
 const decamelize = require('decamelize')
+const BigQuery = require('@google-cloud/bigquery')
+const uuid = require('uuid/v4')
 const files = fs.readdirSync('./downloaded')
 const comuni = JSON.parse(fs.readFileSync('./data/comuni.json').toString())
 const { dbConnection } = require('./bigquery')
@@ -75,19 +77,35 @@ const extractData = cityData => {
   return values
 }
 
+const getCityData = City => async (name, fallbackData) => {
+  const namedCityData = { ...fallbackData, name }
+  const additionalData = extractData(namedCityData)
+  const completeCity = { ...namedCityData, ...additionalData }
+  const validCity = Object.keys(completeCity).reduce((acc, k) => {
+    return completeCity[k] === undefined || completeCity[k] === null
+      ? acc
+      : { ...acc, [k]: completeCity[k] }
+  }, {})
+  const newCity = await City.findOrCreate({ where: validCity, defaults: { uid: uuid() } })
+  return newCity
+}
+
 const start = async () => {
   const { Election, City, Result } = await dbConnection()
+  const cityDataGetter = getCityData(City)
   for (let i = 0; i < files.length; i++) {
     console.log(`File ${i}/${files.length}`)
     const file = files[i]
     const allRows = fs.readFileSync(`./downloaded/${file}`).toString().split('\n')
     const validRows = getDataFromRows(allRows)
     const [day, month, year] = file.split('-')[2].split('_')
+    const momentDate = moment.utc({ day, month, year })
     const where = {
       camera: 'Camera',
-      date: moment.utc({ day, month, year }),
+      date: BigQuery.datetime(momentDate.format('YYYY-MM-DD HH:mm:ss')),
     }
-    const [election] = await Election.findOrCreate({ where })
+    const defaults = { uid: uuid() }
+    const election = await Election.findOrCreate({ where, defaults })
     const [dirtyRegion, dirtyProvince] = file.split('-Comune.csv')[0].split('-').slice(-2)
     const regione = cleanAndCapitalize(dirtyRegion)
     const provincia = cleanAndCapitalize(dirtyProvince)
@@ -95,27 +113,26 @@ const start = async () => {
       regione,
       provincia,
     }
+    const cityRows = {}
     for (let j = 0; j < validRows.length; j++) {
       const row = validRows[j]
       const { votes, party, name } = row
-      const namedCityData = { ...cityData, name: cleanAndCapitalize(name) }
-      const additionalData = extractData(namedCityData)
-      const completeCity = { ...namedCityData, ...additionalData }
-      const validCity = Object.keys(completeCity).reduce((acc, k) => {
-        return completeCity[k] === undefined || completeCity[k] === null
-          ? acc
-          : { ...acc, [k]: completeCity[k] }
-      }, {})
-      const [city] = await City.findOrCreate({ where: validCity })
+      const cleanName = cleanAndCapitalize(name)
+      const city = cityRows[cleanName]
+        ? cityRows[cleanName]
+        : { city: await cityDataGetter(cleanName, cityData), votes: [] }
       const resultData = {
-        city_id: city.id,
-        election_id: election.id,
+        city_uid: city.city.uid,
+        election_uid: election.uid,
         party,
-      }
-      const additional = {
         votes: votes || 0,
       }
-      await Result.findOrCreate({ where: resultData, defaults: additional })
+      city.votes.push(resultData)
+      cityRows[cleanName] = city
+    }
+    for (let k = 0; k < Object.keys(cityRows).length; k++) {
+      const rows = cityRows[Object.keys(cityRows)[k]].votes
+      await Result.create(rows)
     }
   }
   process.exit()
