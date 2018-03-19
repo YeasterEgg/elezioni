@@ -6,6 +6,17 @@ const { get } = require('lodash')
 const wait = ms => new Promise((resolve, reject) => setTimeout(resolve, ms))
 const downloaded = fs.readFileSync('./data/downloaded.txt').toString().split('\n')
 
+const extraKeys = ['tpe', 'lev3', 'levsut3', 'ne3', 'es0', 'es1', 'es2', 'es3', 'ms']
+
+const removeQueryKeys = (href, keys = []) => {
+  const [url, queryString] = href.split('?')
+  const queries = queryString.split('&').filter(query => {
+    const [key] = query.split('=')
+    return keys.indexOf(key) === -1
+  }).join('&')
+  return `${url}?${queries}`
+}
+
 const start = async () => {
   const lines = fs.readFileSync('./crawled/results.txt').toString().split('\n')
   const iterator = async (href, idx) => {
@@ -13,30 +24,17 @@ const start = async () => {
       console.log(`Skipping ${idx}`)
     } else {
       try {
-        let error = true
-        let errors = 0
         let csv
-        while (error) {
-          errors++
-          csv = await got.get(href)
-          error = get(csv.headers, 'content-disposition') === undefined
-          if (errors > 10) {
-            const errorMessage = {
-              url: csv.requestUrl,
-              status: csv.statusCode,
-              idx: href,
-              href: href,
-            }
-            fs.appendFileSync(
-              './data/download-errors.json',
-              `${JSON.stringify(errorMessage)}\n`
-            )
+        let requestHref = href
+        while (true) {
+          csv = await got.get(requestHref)
+          const error = get(csv.headers, 'content-disposition') === undefined
+          if (error) {
+            requestHref = `${removeQueryKeys(href, extraKeys)}&tpest=l`
             await wait(200)
-          } else if (errors > 1) {
-            console.log(`Trial #${errors} for ${idx}`)
-            await wait(errors * 500)
           } else {
             await wait(200)
+            break
           }
         }
         const text = csv.body

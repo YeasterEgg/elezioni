@@ -3,7 +3,7 @@ const moment = require('moment')
 const decamelize = require('decamelize')
 const files = fs.readdirSync('./downloaded')
 const comuni = JSON.parse(fs.readFileSync('./data/comuni.json').toString())
-const { dbConnection } = require('./db')
+const { dbConnection } = require('./bigquery')
 
 const additionalKeys = [
   'AreaGeo',
