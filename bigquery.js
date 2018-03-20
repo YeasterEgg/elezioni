@@ -4,7 +4,6 @@ const DATASET_NAME = 'elezioni'
 
 const ELECTIONS_SCHEMA = {
   fields: [
-    { name: 'uid', type: 'STRING' },
     { name: 'date', type: 'DATETIME' },
     { name: 'camera', type: 'STRING' },
   ],
@@ -12,7 +11,6 @@ const ELECTIONS_SCHEMA = {
 
 const CITIES_SCHEMA = {
   fields: [
-    { name: 'uid', type: 'STRING' },
     { name: 'name', type: 'STRING' },
     { name: 'regione', type: 'STRING' },
     { name: 'provincia', type: 'STRING' },
@@ -40,13 +38,11 @@ const RESULTS_SCHEMA = {
   fields: [
     { name: 'votes', type: 'INTEGER' },
     { name: 'party', type: 'STRING' },
-    { name: 'city_uid', type: 'STRING' },
-    { name: 'election_uid', type: 'STRING' },
+    { name: 'city_name', type: 'STRING' },
+    { name: 'city_regione', type: 'STRING' },
+    { name: 'election_date', type: 'DATETIME' },
+    { name: 'election_camera', type: 'STRING' },
   ],
-}
-
-const cleanInput = input => {
-  return input.replace(/'/g, '')
 }
 
 class Table {
@@ -60,7 +56,7 @@ class Table {
   }
 
   createQuery(where) {
-    const clauses = Object.entries(where).map(([k, v]) => `${k} = '${v.value || cleanInput(v)}'`).join(' AND ')
+    const clauses = Object.entries(where).map(([k, v]) => `${k} = '${v.value || v}'`).join(' AND ')
     const query = `SELECT * FROM ${this.name} WHERE ${clauses}`
     return query
   }
@@ -86,10 +82,8 @@ class Table {
     const query = this.createQuery(where)
     const results = await this.table.query(query)
     const row = results[0][0]
-    if (row) return row
-    const data = Object.assign({}, where, defaults)
-    await this.table.insert(data)
-    return data
+    if (row) return
+    await this.table.insert(Object.assign({}, where, defaults))
   }
 
   async getRows() {

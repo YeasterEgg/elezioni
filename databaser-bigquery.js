@@ -45,7 +45,7 @@ const getDataFromRows = rows => {
 }
 
 const cleanAndCapitalize = t => {
-  const clean = t.replace(/[^A-Za-z ']/g, '')
+  const clean = t.replace(/[^A-Za-z ]/g, '').replace(/'/g, '\'')
   return clean[0].toUpperCase() + clean.slice(1).toLowerCase()
 }
 
@@ -78,7 +78,7 @@ const extractData = cityData => {
   return values
 }
 
-const getCityData = City => async (name, fallbackData) => {
+const getCityData = City => (name, fallbackData) => {
   const namedCityData = { ...fallbackData, name }
   const additionalData = extractData(namedCityData)
   const completeCity = { ...namedCityData, ...additionalData }
@@ -87,31 +87,51 @@ const getCityData = City => async (name, fallbackData) => {
       ? acc
       : { ...acc, [k]: completeCity[k] }
   }, {})
-  const newCity = await City.findOrCreate({ where: validCity, defaults: { uid: uuid() } })
-  return newCity
+  return validCity
+}
+
+function Performances() {
+  const self = this
+  self.avgTime = 0
+  self.processed = 0
+  self.addTime = time => {
+    const timeSoFar = self.avgTime * self.processed
+    self.avgTime = (timeSoFar + time) / (self.processed + 1)
+    self.processed += 1
+  }
+  return self
+}
+
+const formatMissing = time => {
+  const seconds = Math.floor(time % 60)
+  const minutes = Math.floor(((time - seconds) / 60) % 60)
+  const hours = Math.floor(((time - seconds) - 60 * minutes) / 3600)
+  return `${hours} h, ${minutes} m, ${seconds} s`
 }
 
 const start = async () => {
   const { Election, City, Result } = await dbConnection()
   const cityDataGetter = getCityData(City)
+  const performances = new Performances()
   for (let i = 0; i < files.length; i++) {
+    const startTime = Date.now()
     const file = files[i]
     if (databasedList.indexOf(file) !== -1) {
       console.log(`Skipping file ${i}/${files.length}`)
       continue
     } else {
-      console.log(`File ${i}/${files.length}`)
+      const missing = (files.length - i) * performances.avgTime
+      console.log(`File ${i}/${files.length} - ${formatMissing(missing)} to go`)
     }
     const allRows = fs.readFileSync(`./downloaded/${file}`).toString().split('\n')
     const validRows = getDataFromRows(allRows)
     const [day, month, year] = file.split('-')[2].split('_')
     const momentDate = moment.utc({ day, month, year })
-    const where = {
+    const election = {
       camera: 'Camera',
       date: BigQuery.datetime(momentDate.format('YYYY-MM-DD HH:mm:ss')),
     }
-    const defaults = { uid: uuid() }
-    const election = await Election.findOrCreate({ where, defaults })
+    await Election.findOrCreate({ where: election })
     const [dirtyRegion, dirtyProvince] = file.split('-Comune.csv')[0].split('-').slice(-2)
     const regione = cleanAndCapitalize(dirtyRegion)
     const provincia = cleanAndCapitalize(dirtyProvince)
@@ -126,10 +146,12 @@ const start = async () => {
       const cleanName = cleanAndCapitalize(name)
       const city = cityRows[cleanName]
         ? cityRows[cleanName]
-        : { city: await cityDataGetter(cleanName, cityData), votes: [] }
+        : { city: cityDataGetter(cleanName, cityData), votes: [] }
       const resultData = {
-        city_uid: city.city.uid,
-        election_uid: election.uid,
+        city_name: city.city.name,
+        city_regione: city.city.regione,
+        election_camera: election.camera,
+        election_date: election.date,
         party,
         votes: votes || 0,
       }
@@ -137,10 +159,16 @@ const start = async () => {
       cityRows[cleanName] = city
     }
     for (let k = 0; k < Object.keys(cityRows).length; k++) {
-      const rows = cityRows[Object.keys(cityRows)[k]].votes
-      await Result.create(rows)
+      const cityName = Object.keys(cityRows)[k]
+      const { votes, city } = cityRows[cityName]
+      await Result.create(votes)
+      await City.findOrCreate({ where: city })
     }
     fs.appendFileSync('./data/databased.txt', `${file}\n`)
+    const endTime = Date.now()
+    const elapsedTime = (endTime - startTime) / 1000
+    performances.addTime(elapsedTime)
+    console.log(`Took ${elapsedTime} - AVG ${performances.avgTime}`)
   }
   process.exit()
 }
