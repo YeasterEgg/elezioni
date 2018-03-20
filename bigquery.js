@@ -45,17 +45,22 @@ const RESULTS_SCHEMA = {
   ],
 }
 
+const cleanInput = input => {
+  return input.replace(/'/g, '')
+}
+
 class Table {
-  constructor(dataset, name, schema) {
+  constructor(dataset, name, schema, referenceColumn) {
     this.dataset = dataset
     this.table = dataset.table(name)
     this.name = name
+    this.referenceColumn = referenceColumn
     this.schema = schema
     this.created = false
   }
 
   createQuery(where) {
-    const clauses = Object.entries(where).map(([k, v]) => `${k} = '${v.value || v}'`).join(' AND ')
+    const clauses = Object.entries(where).map(([k, v]) => `${k} = '${v.value || cleanInput(v)}'`).join(' AND ')
     const query = `SELECT * FROM ${this.name} WHERE ${clauses}`
     return query
   }
@@ -86,6 +91,54 @@ class Table {
     await this.table.insert(data)
     return data
   }
+
+  async getRows() {
+    const rows = await this.table.getRows()
+    return rows
+  }
+
+  async getWithResults(uid) {
+    const query = `
+      SELECT
+        *
+      FROM
+        \`accurat-places.elezioni\`.${this.name}
+      LEFT JOIN
+        \`accurat-places.elezioni\`.results
+      ON results.${this.referenceColumn} = ${this.name}.uid
+      WHERE
+        uid = '${uid}'
+    `
+    const rows = await this.table.query(query)
+    return rows
+  }
+
+  async getInstance(uid) {
+    const query = `
+      SELECT
+        *
+      FROM
+        \`accurat-places.elezioni\`.${this.name}
+      WHERE
+        uid = '${uid}'
+      LIMIT 1
+    `
+    const rows = await this.table.query(query)
+    return rows
+  }
+
+  async getResults(uid) {
+    const query = `
+      SELECT
+        *
+      FROM
+        \`accurat-places.elezioni\`.results
+      WHERE
+        results.${this.referenceColumn} = '${uid}'
+    `
+    const rows = await this.table.query(query)
+    return rows
+  }
 }
 
 class Dataset {
@@ -98,9 +151,9 @@ class Dataset {
   }
 
   async addTables() {
-    const Election = await new Table(this.dataset, 'elections', ELECTIONS_SCHEMA)
+    const Election = await new Table(this.dataset, 'elections', ELECTIONS_SCHEMA, 'election_uid')
     await Election.createTable()
-    const City = await new Table(this.dataset, 'cities', CITIES_SCHEMA)
+    const City = await new Table(this.dataset, 'cities', CITIES_SCHEMA, 'city_uid')
     await City.createTable()
     const Result = await new Table(this.dataset, 'results', RESULTS_SCHEMA)
     await Result.createTable()
