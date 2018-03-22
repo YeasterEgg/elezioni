@@ -6,3 +6,5 @@ __pycache__
 .venv
 downloaded
 downloaded_bckp
+downloaded_clean
+*.log

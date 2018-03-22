@@ -115,7 +115,6 @@ const start = async () => {
   const { Election, City, Result } = await dbConnection()
   const cityDataGetter = getCityData(City)
   const performances = new Performances()
-  const rows = []
   for (let i = 0; i < files.length; i++) {
     const startTime = Date.now()
     const file = files[i]
@@ -164,7 +163,6 @@ const start = async () => {
     for (let k = 0; k < Object.keys(cityRows).length; k++) {
       const cityName = Object.keys(cityRows)[k]
       const { votes, city } = cityRows[cityName]
-      rows.push(...votes)
       await Result.create(votes)
       await City.findOrCreate({ where: city })
     }
@@ -173,11 +171,6 @@ const start = async () => {
     const elapsedTime = (endTime - startTime) / 1000
     performances.addTime(elapsedTime)
     console.log(`Took ${elapsedTime} - AVG ${performances.avgTime}`)
-    if (rows.length > 5000) {
-      console.log(`WRITING ${rows.length} lines now!`)
-      await Result.create(rows)
-      while (rows.length !== 0) { rows.pop() }
-    }
   }
   process.exit()
 }

@@ -4,6 +4,19 @@ const decamelize = require('decamelize')
 const files = fs.readdirSync('./downloaded')
 const comuni = JSON.parse(fs.readFileSync('./data/comuni.json').toString())
 const { dbConnection } = require('./db')
+const processed = fs.readFileSync('./data/processed.txt').toString().split('\n')
+
+function Performances() {
+  const self = this
+  self.avgTime = 0
+  self.processed = 0
+  self.addTime = time => {
+    const timeSoFar = self.avgTime * self.processed
+    self.avgTime = (timeSoFar + time) / (self.processed + 1)
+    self.processed += 1
+  }
+  return self
+}
 
 const additionalKeys = [
   'AreaGeo',
@@ -34,9 +47,9 @@ const getDataFromRows = rows => {
   const partyIdx = keys.indexOf('Liste/Gruppi')
   const votesIdx = keys.indexOf('Voti')
   const values = usefulRows.slice(1).map(row => ({
-    name: row.split(';')[nameIdx],
-    votes: row.split(';')[votesIdx],
-    party: row.split(';')[partyIdx],
+    nome: row.split(';')[nameIdx],
+    voti: row.split(';')[votesIdx],
+    partito: row.split(';')[partyIdx],
   }))
   return values
 }
@@ -48,11 +61,11 @@ const cleanAndCapitalize = t => {
 
 const selectCorrectData = cityData => {
   const additionalData = comuni.filter(c => (
-    c.Comune.toUpperCase() === cityData.name.toUpperCase()
+    c.Comune.toUpperCase() === cityData.nome.toUpperCase()
   ))
   if (additionalData.length === 1) return additionalData[0]
   const locationData = [
-    cityData.name.toUpperCase(),
+    cityData.nome.toUpperCase(),
     cityData.regione.toUpperCase(),
     cityData.provincia.toUpperCase(),
   ]
@@ -75,17 +88,32 @@ const extractData = cityData => {
   return values
 }
 
+const formatMissing = time => {
+  const seconds = Math.floor(time % 60)
+  const minutes = Math.floor(((time - seconds) / 60) % 60)
+  const hours = Math.floor(((time - seconds) - 60 * minutes) / 3600)
+  return `${hours} h, ${minutes} m, ${seconds} s`
+}
+
 const start = async () => {
   const { Election, City, Result } = await dbConnection()
+  const performances = new Performances()
   for (let i = 0; i < files.length; i++) {
-    console.log(`File ${i}/${files.length}`)
+    const startTime = Date.now()
     const file = files[i]
+    if (processed.indexOf(file) !== -1) {
+      console.log(`File ${i}/${files.length} - Skipping file!`)
+      continue
+    } else {
+      const missing = (files.length - i) * performances.avgTime
+      console.log(`File ${i}/${files.length} - ${formatMissing(missing)} to go`)
+    }
     const allRows = fs.readFileSync(`./downloaded/${file}`).toString().split('\n')
     const validRows = getDataFromRows(allRows)
     const [day, month, year] = file.split('-')[2].split('_')
     const where = {
       camera: 'Camera',
-      date: moment.utc({ day, month, year }),
+      data: moment.utc({ day, month, year }),
     }
     const [election] = await Election.findOrCreate({ where })
     const [dirtyRegion, dirtyProvince] = file.split('-Comune.csv')[0].split('-').slice(-2)
@@ -97,8 +125,8 @@ const start = async () => {
     }
     for (let j = 0; j < validRows.length; j++) {
       const row = validRows[j]
-      const { votes, party, name } = row
-      const namedCityData = { ...cityData, name: cleanAndCapitalize(name) }
+      const { voti, partito, nome } = row
+      const namedCityData = { ...cityData, nome: cleanAndCapitalize(nome) }
       const additionalData = extractData(namedCityData)
       const completeCity = { ...namedCityData, ...additionalData }
       const validCity = Object.keys(completeCity).reduce((acc, k) => {
@@ -110,13 +138,19 @@ const start = async () => {
       const resultData = {
         city_id: city.id,
         election_id: election.id,
-        party,
+        partito,
       }
       const additional = {
-        votes: votes || 0,
+        voti: voti || 0,
       }
-      await Result.findOrCreate({ where: resultData, defaults: additional })
+      // await Result.findOrCreate({ where: resultData, defaults: additional })
+      await Result.create({ ...resultData, ...additional })
     }
+    fs.appendFileSync('./data/processed.txt', `${file}\n`)
+    const endTime = Date.now()
+    const elapsedTime = (endTime - startTime) / 1000
+    performances.addTime(elapsedTime)
+    console.log(`Took ${elapsedTime} - AVG ${performances.avgTime}`)
   }
   process.exit()
 }

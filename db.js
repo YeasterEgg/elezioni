@@ -22,13 +22,13 @@ const nullable = (type, config) => (
 
 const Election = sequelize.define('election', {
   id: nonNullable(Sequelize.INTEGER, { primaryKey: true, autoIncrement: true }),
-  date: nonNullable(Sequelize.DATE),
+  data: nonNullable(Sequelize.DATE),
   camera: nonNullable(Sequelize.STRING),
 }, { underscored: true, timestamps: false })
 
 const City = sequelize.define('city', {
   id: nonNullable(Sequelize.INTEGER, { primaryKey: true, autoIncrement: true }),
-  name: nonNullable(Sequelize.STRING),
+  nome: nonNullable(Sequelize.STRING),
   regione: nullable(Sequelize.STRING),
   provincia: nullable(Sequelize.STRING),
   area_geo: nullable(Sequelize.STRING),
@@ -52,8 +52,8 @@ const City = sequelize.define('city', {
 
 const Result = sequelize.define('vote', {
   id: nonNullable(Sequelize.INTEGER, { primaryKey: true, autoIncrement: true }),
-  votes: nonNullable(Sequelize.INTEGER),
-  party: nonNullable(Sequelize.STRING),
+  voti: nonNullable(Sequelize.INTEGER),
+  partito: nonNullable(Sequelize.STRING),
 }, { underscored: true, timestamps: false })
 
 Election.hasMany(Result)
