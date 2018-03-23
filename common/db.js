@@ -64,7 +64,7 @@ Result.belongsTo(Election)
 
 const dbConnection = async () => {
   await sequelize.sync()
-  return { Election, City, Result }
+  return { Election, City, Result, sequelize }
 }
 
 module.exports = { dbConnection }

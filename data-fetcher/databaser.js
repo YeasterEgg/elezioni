@@ -1,7 +1,7 @@
 const fs = require('fs')
 const moment = require('moment')
 const decamelize = require('decamelize')
-const files = fs.readdirSync('./downloaded')
+const files = fs.readdirSync('./downloaded_clean')
 const comuni = JSON.parse(fs.readFileSync('./data/comuni.json').toString())
 const { dbConnection } = require('./db')
 const processed = fs.readFileSync('./data/processed.txt').toString().split('\n')
@@ -41,12 +41,13 @@ const additionalKeys = [
 ]
 
 const getDataFromRows = rows => {
-  const usefulRows = rows.filter(r => r.length > 4)
-  const keys = usefulRows[0].split(';')
+  const keys = rows[0].split(';')
   const nameIdx = keys.indexOf('Ente')
   const partyIdx = keys.indexOf('Liste/Gruppi')
   const votesIdx = keys.indexOf('Voti')
-  const values = usefulRows.slice(1).map(row => ({
+  const values = rows.slice(1).filter(row => {
+    return row.split(';')[3].length === 0
+  }).map(row => ({
     nome: row.split(';')[nameIdx],
     voti: row.split(';')[votesIdx],
     partito: row.split(';')[partyIdx],
@@ -105,10 +106,11 @@ const start = async () => {
       console.log(`File ${i}/${files.length} - Skipping file!`)
       continue
     } else {
+      console.log(file)
       const missing = (files.length - i) * performances.avgTime
       console.log(`File ${i}/${files.length} - ${formatMissing(missing)} to go`)
     }
-    const allRows = fs.readFileSync(`./downloaded/${file}`).toString().split('\n')
+    const allRows = fs.readFileSync(`./downloaded_clean/${file}`).toString().split('\n')
     const validRows = getDataFromRows(allRows)
     const [day, month, year] = file.split('-')[2].split('_')
     const where = {
