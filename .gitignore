@@ -4,7 +4,8 @@ data
 crawled
 __pycache__
 .venv
-downloaded
-downloaded_bckp
-downloaded_clean
+camera-all
+camera-clean
+senato-all
+senato-clean
 *.log

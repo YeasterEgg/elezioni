@@ -3,8 +3,12 @@ const got = require('got')
 const pMapSeries = require('p-map-series')
 const { get } = require('lodash')
 
+const camera = process.env.CAMERA || 'camera'
+
+const STATE_FOLDER = `./${camera}-state`
+
 const wait = ms => new Promise((resolve, reject) => setTimeout(resolve, ms))
-const downloaded = fs.readFileSync('./data/downloaded.txt').toString().split('\n')
+const downloaded = fs.readFileSync(`${STATE_FOLDER}/downloaded.txt`).toString().split('\n')
 
 const extraKeys = ['tpe', 'lev3', 'levsut3', 'ne3', 'es0', 'es1', 'es2', 'es3', 'ms']
 
@@ -41,10 +45,10 @@ const start = async () => {
         const fileName = get(csv.headers, 'content-disposition').split('filename=')[1]
         fs.writeFileSync(`./downloaded/${fileName}_${idx}`, text)
         console.log(`Downloading ${idx}`)
-        fs.appendFileSync('./data/downloaded.txt', `${href}\n`)
+        fs.appendFileSync(`${STATE_FOLDER}/downloaded.txt`, `${href}\n`)
       } catch (err) {
         console.log(`Error ${idx}`)
-        fs.appendFileSync('./data/missing.txt', `${href}\n`)
+        fs.appendFileSync(`${STATE_FOLDER}/missing.txt`, `${href}\n`)
       }
     }
   }

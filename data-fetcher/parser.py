@@ -4,11 +4,13 @@ from pdb import set_trace as shtap
 from random import choice
 
 BASE_URL = 'http://elezionistorico.interno.gov.it'
-FIRST_PATH = '/index.php?tpel=C'
+FIRST_PATH = '/index.php?tpel='
+CAMERA = 'C'
+SENATE = 'S'
 
 class ElectionSpider(scrapy.Spider):
   name = 'electionSpider'
-  start_urls = [BASE_URL + FIRST_PATH]
+  start_urls = [BASE_URL + FIRST_PATH + SENATE]
   download_delay = 1
 
   def parse(self, response):

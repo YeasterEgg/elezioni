@@ -19,7 +19,7 @@ const removeDuplicates = () => {
   }
 }
 
-// removeDuplicates()
+removeDuplicates()
 
 const removeEmptyLines = async () => {
   for (let i = 0; i < files.length; i++) {
