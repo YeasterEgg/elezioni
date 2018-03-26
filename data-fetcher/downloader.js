@@ -6,6 +6,8 @@ const { get } = require('lodash')
 const camera = process.env.CAMERA || 'camera'
 
 const STATE_FOLDER = `./${camera}-state`
+const DOWNLOAD_FOLDER = `./${camera}-all`
+const CRAWLED = `./crawled/${camera}.json`
 
 const wait = ms => new Promise((resolve, reject) => setTimeout(resolve, ms))
 const downloaded = fs.readFileSync(`${STATE_FOLDER}/downloaded.txt`).toString().split('\n')
@@ -22,8 +24,8 @@ const removeQueryKeys = (href, keys = []) => {
 }
 
 const start = async () => {
-  const lines = fs.readFileSync('./crawled/results.txt').toString().split('\n')
-  const iterator = async (href, idx) => {
+  const lines = JSON.parse(fs.readFileSync(CRAWLED).toString())
+  const iterator = async ({ href }, idx) => {
     if (downloaded.indexOf(href) !== -1) {
       console.log(`Skipping ${idx}`)
     } else {
@@ -43,7 +45,7 @@ const start = async () => {
         }
         const text = csv.body
         const fileName = get(csv.headers, 'content-disposition').split('filename=')[1]
-        fs.writeFileSync(`./downloaded/${fileName}_${idx}`, text)
+        fs.writeFileSync(`${DOWNLOAD_FOLDER}/${fileName}_${idx}`, text)
         console.log(`Downloading ${idx}`)
         fs.appendFileSync(`${STATE_FOLDER}/downloaded.txt`, `${href}\n`)
       } catch (err) {
