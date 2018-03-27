@@ -1,0 +1,7 @@
+http://elezionistorico.interno.gov.it/estrazione.php?tpel=S&dtel=24/02/2013&tpa=G&tpe=C&lev0=0&levsut0=0&lev1=4&levsut1=1&lev2=1&levsut2=2&lev3=20&levsut3=4&ne1=4&ne2=401&ne3=10830020&es0=S&es1=S&es2=S&es3=N&ms=S&ord=4
+http://elezionistorico.interno.gov.it/estrazione.php?tpel=S&dtel=24/02/2013&tpa=G&tpe=C&lev0=0&levsut0=0&lev1=4&levsut1=1&lev2=1&levsut2=2&lev3=30&levsut3=4&ne1=4&ne2=401&ne3=10830030&es0=S&es1=S&es2=S&es3=N&ms=S&ord=4
+http://elezionistorico.interno.gov.it/estrazione.php?tpel=S&dtel=24/02/2013&tpa=G&tpe=C&lev0=0&levsut0=0&lev1=4&levsut1=1&lev2=1&levsut2=2&lev3=40&levsut3=4&ne1=4&ne2=401&ne3=10830040&es0=S&es1=S&es2=S&es3=N&ms=S&ord=4
+http://elezionistorico.interno.gov.it/estrazione.php?tpel=S&dtel=24/02/2013&tpa=G&tpe=C&lev0=0&levsut0=0&lev1=4&levsut1=1&lev2=1&levsut2=2&lev3=50&levsut3=4&ne1=4&ne2=401&ne3=10830050&es0=S&es1=S&es2=S&es3=N&ms=S&ord=4
+http://elezionistorico.interno.gov.it/estrazione.php?tpel=S&dtel=24/02/2013&tpa=G&tpe=C&lev0=0&levsut0=0&lev1=4&levsut1=1&lev2=1&levsut2=2&lev3=20&levsut3=4&ne1=4&ne2=401&ne3=10830020&es0=S&es1=S&es2=S&es3=N&ms=S&ord=4
+http://elezionistorico.interno.gov.it/estrazione.php?tpel=S&dtel=24/02/2013&tpa=G&tpe=C&lev0=0&levsut0=0&lev1=4&levsut1=1&lev2=1&levsut2=2&lev3=30&levsut3=4&ne1=4&ne2=401&ne3=10830030&es0=S&es1=S&es2=S&es3=N&ms=S&ord=4
+http://elezionistorico.interno.gov.it/estrazione.php?tpel=S&dtel=24/02/2013&tpa=G&tpe=C&lev0=0&levsut0=0&lev1=4&levsut1=1&lev2=1&levsut2=2&lev3=20&levsut3=4&ne1=4&ne2=401&ne3=10830020&es0=S&es1=S&es2=S&es3=N&ms=S&ord=4

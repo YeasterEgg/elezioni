@@ -50,6 +50,7 @@ const start = async () => {
         fs.appendFileSync(`${STATE_FOLDER}/downloaded.txt`, `${href}\n`)
       } catch (err) {
         console.log(`Error ${idx}`)
+        console.log(err)
         fs.appendFileSync(`${STATE_FOLDER}/missing.txt`, `${href}\n`)
       }
     }

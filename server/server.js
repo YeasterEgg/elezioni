@@ -1,41 +1,11 @@
 const express = require('express')
 const cors = require('cors')
 const { dbConnection } = require('../common/db')
-const { getClosest } = require('./stats')
 const PORT = process.env.PORT || 3000
 const app = express()
 const corsOptions = { origin: (hostname, cb) => cb(null, true) }
 
 app.use(cors(corsOptions))
-
-const AGGREGATED_VOTES_QUERY = id => `
-SELECT
-    SUM(voti) AS somma_voti,
-    partito,
-    cities.nome AS comune,
-    city_id
-FROM
-    votes
-JOIN cities ON cities.id = votes.city_id
-WHERE election_id = ${id}
-GROUP BY
-    cities.nome,
-    city_id,
-    partito
-ORDER BY
-    comune ASC;
-`
-
-const VOTES_QUERY = id => `
-SELECT
-    SUM(voti) AS somma_voti,
-    partito
-FROM
-    votes
-WHERE election_id = 1
-GROUP BY
-    partito;
-`
 
 const routes = {
   '/elections': 'List all elections',
@@ -50,7 +20,7 @@ const routes = {
 }
 
 const startServer = async () => {
-  const { Election, City, Result, sequelize } = await dbConnection()
+  const { Election, City, Result, TransposedCity, sequelize } = await dbConnection()
 
   const getAllInstances = model => async (req, res) => {
     const instances = await model.findAll()
@@ -76,7 +46,6 @@ const startServer = async () => {
   const searchCities = async (req, res) => {
     const { nome, regione, provincia } = req.query
     const { Op: { iLike } } = sequelize
-    console.log(iLike)
     const where = {
       nome: { [iLike]: `%${nome || ''}%` },
       regione: { [iLike]: `%${regione || ''}%` },
@@ -90,16 +59,11 @@ const startServer = async () => {
   const getElectionCities = async (req, res) => {
     const { id } = req.params
     const { top } = req.query
-    const cleanId = id.replace(/[^0-9]/g, '')
-    const groupedQuery = AGGREGATED_VOTES_QUERY(cleanId)
-    const totalQuery = VOTES_QUERY(cleanId)
-    const groupedResults = (await sequelize.query(groupedQuery))[0]
-    const totalResults = (await sequelize.query(totalQuery))[0]
-    const { closest, center } = getClosest({ groupedResults, totalResults })
-    const topClosest = top && !isNaN(Number(top))
-      ? closest.slice(0, Number(top))
-      : closest
-    const payload = { success: true, payload: { topClosest, center } }
+    const order = ['distance']
+    const limit = top ? Number(top) : undefined
+    const where = { election_id: id }
+    const topClosest = await TransposedCity.findAll({ where, order, limit })
+    const payload = { success: true, payload: topClosest }
     res.status(200).json(payload)
   }
 
