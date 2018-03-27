@@ -62,8 +62,17 @@ const TransposedCity = sequelize.define('transposed_city', {
   distance: nonNullable(Sequelize.FLOAT),
 }, { underscored: true, timestamps: false })
 
+const Analysis = sequelize.define('analysis', {
+  id: nonNullable(Sequelize.INTEGER, { primaryKey: true, autoIncrement: true }),
+  type: nullable(Sequelize.STRING),
+  cities: nullable(Sequelize.JSONB),
+  properties: nullable(Sequelize.JSONB),
+  clusters: nullable(Sequelize.JSONB),
+}, { underscored: true, timestamps: false })
+
 Election.hasMany(Result)
 Election.hasMany(TransposedCity)
+Election.hasMany(Analysis)
 City.hasMany(Result)
 City.hasMany(TransposedCity)
 
@@ -71,10 +80,11 @@ Result.belongsTo(City)
 Result.belongsTo(Election)
 TransposedCity.belongsTo(City)
 TransposedCity.belongsTo(Election)
+Analysis.belongsTo(Election)
 
 const dbConnection = async () => {
   await sequelize.sync()
-  return { Election, City, Result, TransposedCity, sequelize }
+  return { Election, City, Result, TransposedCity, Analysis, sequelize }
 }
 
 module.exports = { dbConnection }

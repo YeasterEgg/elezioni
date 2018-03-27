@@ -17,10 +17,12 @@ const routes = {
   '/cities/:id': 'Single city',
   '/cities/:id/results': 'Single city votes',
   '/results': 'Please don\'t. Really.',
+  '/analyses': 'List all analyses',
+  '/analyses/:id': 'Single analyses',
 }
 
 const startServer = async () => {
-  const { Election, City, Result, TransposedCity, sequelize } = await dbConnection()
+  const { Election, City, Result, TransposedCity, Analysis, sequelize } = await dbConnection()
 
   const getAllInstances = model => async (req, res) => {
     const instances = await model.findAll()
@@ -72,13 +74,15 @@ const startServer = async () => {
   }
 
   app.get('/', (req, res) => res.status(200).json(routes))
-  app.get('/elections/:id', getSingleInstance(Election))
   app.get('/elections/:id/results', getSingleInstanceVotes('election_id'))
   app.get('/elections/:id/closest', getElectionCities)
+  app.get('/elections/:id', getSingleInstance(Election))
   app.get('/elections', getAllInstances(Election))
-  app.get('/cities/:id', getSingleInstance(City))
   app.get('/cities/:id/results', getSingleInstanceVotes('city_id'))
+  app.get('/cities/:id', getSingleInstance(City))
   app.get('/cities', getAllInstances(City))
+  app.get('/analyses/:id', getSingleInstance(Analysis))
+  app.get('/analyses', getAllInstances(Analysis))
   app.get('/bunchofdata', getAllInstances(Result))
   app.get('/results', fakeResults)
   app.get('/search', searchCities)
