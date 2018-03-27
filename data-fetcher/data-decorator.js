@@ -45,6 +45,7 @@ const start = async () => {
     })
   }
   const iterator = async id => {
+    console.log(`Iterating election #${id}`)
     const groupedQuery = AGGREGATED_VOTES_QUERY(id)
     const totalQuery = VOTES_QUERY(id)
     const groupedResults = (await sequelize.query(groupedQuery))[0]
